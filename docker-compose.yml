@@ -1,7 +1,7 @@
 services:
   wallet-db:
     image: postgres:16.1
-    container_name: walled-db
+    container_name: wallet-db
     ports:
       - "5432:5432"
     environment:
