@@ -14,6 +14,7 @@ import ru.perminov.testJavaCode.model.Wallet;
 import ru.perminov.testJavaCode.repository.TransactionRepository;
 import ru.perminov.testJavaCode.repository.WalletRepository;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -28,6 +29,7 @@ public class WalletServiceImpl implements WalletService {
         Wallet wallet = getWallet(dto.getWalletId());
         Transaction tr = TransactionMapper.toEntity(dto);
         tr.setWallet(wallet);
+        tr.setCreated(LocalDateTime.now());
         transactionRepository.save(tr);
 
         if (dto.getOperationType() == OperationType.DEPOSIT) {

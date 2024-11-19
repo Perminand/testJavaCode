@@ -2,11 +2,11 @@ package ru.perminov.testJavaCode.dto;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
 
 import java.util.UUID;
 
-@Getter
+@Data
 @Builder
 @NotNull
 public class WalletDto {
