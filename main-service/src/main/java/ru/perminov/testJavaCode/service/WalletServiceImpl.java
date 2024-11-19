@@ -1,11 +1,12 @@
 package ru.perminov.testJavaCode.service;
 
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.perminov.testJavaCode.dto.TransactionDto;
 import ru.perminov.testJavaCode.dto.WalletDto;
+import ru.perminov.testJavaCode.exceptions.errors.EntityNotFoundException;
+import ru.perminov.testJavaCode.exceptions.errors.ValidationException;
 import ru.perminov.testJavaCode.mapper.TransactionMapper;
 import ru.perminov.testJavaCode.mapper.WalletMapper;
 import ru.perminov.testJavaCode.model.OperationType;
@@ -35,7 +36,11 @@ public class WalletServiceImpl implements WalletService {
         if (dto.getOperationType() == OperationType.DEPOSIT) {
             wallet.setCount(wallet.getCount() + dto.getAmount());
         } else if (dto.getOperationType() == OperationType.WITHDRAW) {
-            wallet.setCount(wallet.getCount() - dto.getAmount());
+            if (wallet.getCount() - dto.getAmount() < 0) {
+                throw new ValidationException("Не достаточно средств");
+            } else {
+                wallet.setCount(wallet.getCount() - dto.getAmount());
+            }
         }
         return WalletMapper.toDto(wallet);
     }

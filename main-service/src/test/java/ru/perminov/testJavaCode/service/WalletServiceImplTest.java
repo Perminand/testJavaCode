@@ -1,6 +1,5 @@
 package ru.perminov.testJavaCode.service;
 
-import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,6 +10,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.perminov.testJavaCode.dto.TransactionDto;
 import ru.perminov.testJavaCode.dto.WalletDto;
+import ru.perminov.testJavaCode.exceptions.errors.EntityNotFoundException;
 import ru.perminov.testJavaCode.mapper.WalletMapper;
 import ru.perminov.testJavaCode.model.OperationType;
 import ru.perminov.testJavaCode.model.Transaction;

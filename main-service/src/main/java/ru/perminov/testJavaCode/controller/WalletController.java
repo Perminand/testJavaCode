@@ -25,7 +25,7 @@ public class WalletController {
     @GetMapping("/wallets/{uuid}")
     @ResponseStatus(HttpStatus.OK)
     public WalletDto getById(@PathVariable String uuid) {
-        log.info("Пришел GET запрос на получение всех записей");
+        log.info("Пришел GET запрос на получение баланса");
         return walletService.getById(uuid);
     }
 }

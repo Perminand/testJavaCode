@@ -11,14 +11,14 @@ import ru.perminov.testJavaCode.model.OperationType;
 @NoArgsConstructor
 public class TransactionDto {
 
-    @NotBlank
+    @NotBlank(message = "walletId не должно быть пустым")
     private String walletId;
 
-    @NotNull
+    @NotNull(message = "operationType не должно быть null")
     private OperationType operationType;
 
-    @NotNull
-    @Positive
+    @NotNull(message = "amount не должно быть null")
+    @Positive(message = "Должно быть больше 0")
     private Long amount;
 
 }
