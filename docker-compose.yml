@@ -1,0 +1,27 @@
+services:
+  wallet-db:
+    image: postgres:16.1
+    container_name: walled-db
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=wallet
+      - POSTGRES_USER=users
+      - POSTGRES_PASSWORD=users
+    healthcheck:
+      test: pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER
+      timeout: 5s
+      interval: 5s
+      retries: 10
+
+  main-service:
+    build: main-service
+    container_name: main-service
+    ports:
+      - "8080:8080"
+    depends_on:
+      - wallet-db
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://wallet-db:5432/wallet
+      - SPRING_DATASOURCE_USERNAME=users
+      - SPRING_DATASOURCE_PASSWORD=users
