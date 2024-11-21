@@ -1,7 +1,6 @@
 package ru.perminov.testJavaCode.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.perminov.testJavaCode.dto.TransactionDto;
@@ -22,22 +21,21 @@ public class WalletServiceImpl implements WalletService {
 
 
     @Override
-    @Retryable(maxAttempts = 5)
     @Transactional
     public WalletDto create(TransactionDto dto) {
-        Wallet wallet = getWallet(dto.getWalletId());
+        Wallet wallet = walletRepository.findByIdForUpdate(UUID.fromString(dto.getWalletId()));
         transactionService.create(dto, wallet);
         switch (dto.getOperationType()) {
             case DEPOSIT:
-                wallet.setCount(wallet.getCount() + dto.getAmount());
+                depositToWallet(wallet, dto.getAmount());
                 break;
             case WITHDRAW:
-                wallet.setCount(wallet.getCount() - dto.getAmount());
+                withdrawToWallet(wallet, dto.getAmount());
                 break;
             default:
                 throw new UnsupportedOperationException("Неизвестная операция");
         }
-        walletRepository.save(wallet); // Автоматическая проверка версии
+        walletRepository.save(wallet);
         return WalletMapper.toDto(wallet);
     }
 
@@ -47,18 +45,16 @@ public class WalletServiceImpl implements WalletService {
     }
 
 
-    private Wallet depositToWallet(Wallet wallet, Long amount) {
+    private void depositToWallet(Wallet wallet, Long amount) {
         wallet.setCount(wallet.getCount() + amount);
-        return wallet;
     }
 
-    private Wallet withdrawToWallet(Wallet wallet, Long amount) {
+    private void withdrawToWallet(Wallet wallet, Long amount) {
         if (wallet.getCount() - amount < 0) {
             throw new ValidationException("Не достаточно средств");
         } else {
             wallet.setCount(wallet.getCount() - amount);
         }
-        return wallet;
     }
 
     private Wallet getWallet(String uuid) {
