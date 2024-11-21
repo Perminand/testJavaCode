@@ -1,53 +1,64 @@
 package ru.perminov.testJavaCode.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.perminov.testJavaCode.dto.TransactionDto;
 import ru.perminov.testJavaCode.dto.WalletDto;
 import ru.perminov.testJavaCode.exceptions.errors.EntityNotFoundException;
 import ru.perminov.testJavaCode.exceptions.errors.ValidationException;
-import ru.perminov.testJavaCode.mapper.TransactionMapper;
 import ru.perminov.testJavaCode.mapper.WalletMapper;
-import ru.perminov.testJavaCode.model.OperationType;
-import ru.perminov.testJavaCode.model.Transaction;
 import ru.perminov.testJavaCode.model.Wallet;
-import ru.perminov.testJavaCode.repository.TransactionRepository;
 import ru.perminov.testJavaCode.repository.WalletRepository;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class WalletServiceImpl implements WalletService {
     private final WalletRepository walletRepository;
-    private final TransactionRepository transactionRepository;
+    private final TransactionService transactionService;
+
 
     @Override
+    @Retryable(maxAttempts = 5)
     @Transactional
     public WalletDto create(TransactionDto dto) {
         Wallet wallet = getWallet(dto.getWalletId());
-        Transaction tr = TransactionMapper.toEntity(dto);
-        tr.setWallet(wallet);
-        tr.setCreated(LocalDateTime.now());
-        transactionRepository.save(tr);
-
-        if (dto.getOperationType() == OperationType.DEPOSIT) {
-            wallet.setCount(wallet.getCount() + dto.getAmount());
-        } else if (dto.getOperationType() == OperationType.WITHDRAW) {
-            if (wallet.getCount() - dto.getAmount() < 0) {
-                throw new ValidationException("Не достаточно средств");
-            } else {
+        transactionService.create(dto, wallet);
+        switch (dto.getOperationType()) {
+            case DEPOSIT:
+                wallet.setCount(wallet.getCount() + dto.getAmount());
+                break;
+            case WITHDRAW:
                 wallet.setCount(wallet.getCount() - dto.getAmount());
-            }
+                break;
+            default:
+                throw new UnsupportedOperationException("Неизвестная операция");
         }
+        walletRepository.save(wallet); // Автоматическая проверка версии
         return WalletMapper.toDto(wallet);
     }
 
     @Override
     public WalletDto getById(String uuid) {
         return WalletMapper.toDto(getWallet(uuid));
+    }
+
+
+    private Wallet depositToWallet(Wallet wallet, Long amount) {
+        wallet.setCount(wallet.getCount() + amount);
+        return wallet;
+    }
+
+    private Wallet withdrawToWallet(Wallet wallet, Long amount) {
+        if (wallet.getCount() - amount < 0) {
+            throw new ValidationException("Не достаточно средств");
+        } else {
+            wallet.setCount(wallet.getCount() - amount);
+        }
+        return wallet;
     }
 
     private Wallet getWallet(String uuid) {
