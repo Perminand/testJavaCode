@@ -11,8 +11,6 @@ import java.util.UUID;
 @Table(name = "wallets")
 @NoArgsConstructor
 public class Wallet {
-    @Version
-    private Long version;
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -20,6 +18,4 @@ public class Wallet {
 
     @Column(nullable = false)
     private Long count;
-
-
 }
