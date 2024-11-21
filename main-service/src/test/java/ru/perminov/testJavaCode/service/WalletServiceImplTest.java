@@ -15,7 +15,6 @@ import ru.perminov.testJavaCode.mapper.WalletMapper;
 import ru.perminov.testJavaCode.model.OperationType;
 import ru.perminov.testJavaCode.model.Transaction;
 import ru.perminov.testJavaCode.model.Wallet;
-import ru.perminov.testJavaCode.repository.TransactionRepository;
 import ru.perminov.testJavaCode.repository.WalletRepository;
 
 import java.time.LocalDateTime;
@@ -28,7 +27,7 @@ class WalletServiceImplTest {
     @Mock
     WalletRepository walletRepository;
     @Mock
-    TransactionRepository transactionRepository;
+    TransactionService transactionService;
     @InjectMocks
     private WalletServiceImpl walletService;
     private Wallet wallet = null;
@@ -56,12 +55,10 @@ class WalletServiceImplTest {
 
     @Test
     void createOk() {
+
         Mockito
-                .when(walletRepository.findById(Mockito.any()))
+                .when(walletRepository.findByIdForUpdate(Mockito.any()))
                 .thenReturn(Optional.ofNullable(wallet));
-        Mockito
-                .when(transactionRepository.save(Mockito.any(Transaction.class)))
-                .thenReturn(transaction);
         WalletDto walletDto = walletService.create(transactionDto);
         wallet.setCount(1000L);
         Assertions.assertEquals(walletDto, WalletMapper.toDto(wallet));
@@ -72,7 +69,7 @@ class WalletServiceImplTest {
     void createFailNoUUID() {
         wallet.setUuid(UUID.fromString("b316c28f-fd46-44ac-83c2-7332fce86997"));
         Mockito
-                .when(walletRepository.findById(Mockito.any()))
+                .when(walletRepository.findByIdForUpdate(Mockito.any()))
                 .thenThrow(EntityNotFoundException.class);
         Assertions.assertThrows(EntityNotFoundException.class,
                 () -> walletService.create(transactionDto)
