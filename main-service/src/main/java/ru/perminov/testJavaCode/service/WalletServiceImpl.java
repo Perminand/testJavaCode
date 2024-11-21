@@ -23,7 +23,8 @@ public class WalletServiceImpl implements WalletService {
     @Override
     @Transactional
     public WalletDto create(TransactionDto dto) {
-        Wallet wallet = walletRepository.findByIdForUpdate(UUID.fromString(dto.getWalletId()));
+        Wallet wallet = walletRepository.findByIdForUpdate(UUID.fromString(dto.getWalletId()))
+                .orElseThrow(() -> new EntityNotFoundException("Кошелек не найден"));
         transactionService.create(dto, wallet);
         switch (dto.getOperationType()) {
             case DEPOSIT:
@@ -41,7 +42,9 @@ public class WalletServiceImpl implements WalletService {
 
     @Override
     public WalletDto getById(String uuid) {
-        return WalletMapper.toDto(getWallet(uuid));
+        Wallet wallet = walletRepository.findById(UUID.fromString(uuid))
+                .orElseThrow(() -> new EntityNotFoundException("Кошелек не найден"));
+        return WalletMapper.toDto(wallet);
     }
 
 
@@ -57,8 +60,4 @@ public class WalletServiceImpl implements WalletService {
         }
     }
 
-    private Wallet getWallet(String uuid) {
-        return walletRepository.findById(UUID.fromString(uuid))
-                .orElseThrow(() -> new EntityNotFoundException("Кошелек не найден"));
-    }
 }
